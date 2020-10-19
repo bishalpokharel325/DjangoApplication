@@ -52,10 +52,190 @@ then, rename the gitignore file:  ren .gitignore.txt .gitignore
 3) Create a New Application:
 
 1) Open Pycharm and open this project
-2) in setting.py register all apps:
+2) in terminal: cd MainHub
+3) py manage.py startapp news
+4) in setting.py register all apps:
 	i) 'ckeditor'
 	ii) 'news.apps.NewsConfig'
-	iii) 'crispy.forms'
+	iii) 'crispy_forms'
+5) test by applying: py manage.py runserver ... server should run smoothly
+.......................................................................................
+
+4) Initiate Urls and views:
+
+	i) MainHub/urls:
+
+		from django.contrib import admin
+		from django.urls import path,include
+
+			urlpatterns = [
+    			path('admin/', admin.site.urls),
+    			path('', include('news.urls'))
+			]
+
+	ii) make new urls.py in news folder:
+
+
+from django.urls import path
+from . import views
+
+urlpatterns = [
+    path('', views.index,name='home'),
+    path('home', views.index,name='home'),
+    path('about', views.about,name='about'),
+    path('contact', views.contact,name='contact'),
+    path('register', views.register,name='register'),
+    path('login', views.login,name='login'),
+]
+
+	iii) views.py
+		
+		from django.shortcuts import render
+
+		# Create your views here.
+		def index(request):
+    			return render(request,"frontend/pages/home.html")
+		def about(request):
+    			return render(request,"frontend/pages/about.html")
+		def contact(request):
+    			return render(request,"frontend/pages/contact.html")
+		def register(request):
+    			return render(request,"frontend/pages/register.html")
+		def login(request):
+    			return render(request,"frontend/pages/login.html")
+
+.............................................................................................
+5) Templates and folder creation:
+
+i) make a new folder "templates" in app folder news folder
+ii) register 'templates' in setting.py
+iii) create folder and html structure as follow:
+
+
+
+(news) ...... (templates)....(frontend)...........(master,pages,layout)
+(master)...... master.html
+(pages) home, about, contact, register, login
+(layout) header, footer, navbar
+
+iv) header.html ma upto <body> samma rakhne without any spaces
+v) footer.html ma upto </body> dekhi below rakhne without any spaces
+vi) navbar.html ma:
+
+<a href="{% url 'home' %}"> home</a>
+<a href="{% url 'about' %}"> about</a>
+<a href="{% url 'contact' %}"> contact</a>
+<a href="{% url 'login' %}"> login</a>
+<a href="{% url 'register' %}"> register</a>
+
+
+vii) master.html
+
+{% include 'frontend/layout/header.html' %}
+{% include 'frontend/layout/navbar.html' %}
+{% block content%}
+{% endblock %}
+{% include 'frontend/layout/footer.html' %}
+
+viii) home, about, contact, login, register.html ma
+
+{% extends 'frontend/master/master.html' %}
+{% block content%}
+<h1> Hello Home page</h1>
+{% endblock %}
+..............................................................................
+
+
+6) Loading STATIC css,image and js files:
+
+CSS and JS files:
+
+i) make a new folder in news named 'static'>>> style.css and body background blue
+ii) header.html ma 
+	html mathi {% load static %}
+iii) link ma: <link rel="stylesheet" href="{% static 'style.css' %}">
+
+
+..................................................................
+
+7) Creating Super user and editing Admin page:
+
+1) py manage.py migrate
+2) py manage.py createsuperuser add username and pw email
+3) urls.py from parent folder ma:
+
+admin.site.site_header="Django Header"
+admin.site.site_title="Title "
+admin.site.index_title="Index Title"
+
+4) runserver.. open /admin then login to superuser account there u can see the results
+
+.....................................................................
+
+Create MODEL for dynamic Content:
+
+8) model.py ma:
+
+from ckeditor.fields import RichTextField
+# Create your models here.
+class Slider(models.Model):
+    title=models.CharField(max_length=150,unique=True)
+    description=RichTextField()
+    image=models.ImageField(upload_to="Slider")
+    status=models.BooleanField(default=0)
+    created_at=models.DateField()
+    slug=models.CharField(max_length=150,unique=True)
+
+#name of object as title
+def _str_(self):
+	return self.title
+
+
+2) Register the slider in admin.py:
+
+# admin ma list jasta ko tyestai dekhauna
+
+from .models import Slider
+# Register your models here.
+admin.site.register(Slider)
+
+3) py manage.py makemigrations
+	py manage.py migrate
+
+
+4) ramro banauna date heru serach filter garne banauna
+
+from .models import Slider
+# Register your models here.
+# admin.site.register(Slider)
+@admin.register(Slider)
+class adminSlider(admin.ModelAdmin):
+    list_display = ['title','status']
+    search_fields = ['title','status']
+    date_hierarchy = 'created_at'
+    prepopulated_fields = {'slug':['title']}
+    list_per_page = 2
+.......................................................................
+
+9) Slider ko data display in the page:
+
+1) views.py ma 
+
+from .models import Slider
+
+# Create your views here.
+def index(request):
+    data={'sliderData':Slider.objects.all()}
+    return render(request,"frontend/pages/home.html",data)
+
+
+2) home.html ma
+
+{% for slider in sliderData %}
+{{slider.title}}
+{{slider.description}}
+<img src="{{slider.image.url}}">
+{% endfor %}
 
 
 

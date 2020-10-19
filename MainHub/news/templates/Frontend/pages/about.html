@@ -1,0 +1,12 @@
+{% extends 'frontend/master/master.html' %}
+{% block content%}
+<h1> Hello About page</h1>
+
+{% for article in articleData %}
+<br>
+<hr>
+{{article.title}}
+{{article.description|safe}}
+<img src="{{article.image.url}}">
+{% endfor %}
+{% endblock %}
